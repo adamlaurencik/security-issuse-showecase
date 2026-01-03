@@ -92,9 +92,80 @@ security-demo-shop/
     └── init.sql
 ```
 
-## Adding Security Vulnerabilities
+## Security Issues for Training
 
-This application is designed as a foundation for adding various security issues for training purposes. Some areas to consider:
+This application contains intentional security vulnerabilities for educational purposes. Below is a documented list of issues to explore during security training.
+
+---
+
+### 1. Leaking Secrets
+
+**Severity:** Critical
+
+**Description:**
+Sensitive credentials and API keys are committed directly to the repository, making them accessible to anyone with repository access.
+
+**Locations:**
+
+- `environment-variables/prod.env` - Contains production secrets committed to git:
+  - Database credentials (`DB_PASSWORD=Pr0d_P@ssw0rd_2024!`)
+  - Payment API keys (Stripe, PayPal)
+  - AWS credentials (`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`)
+  - JWT signing secret
+  - Email service credentials (SendGrid, SMTP)
+  - Third-party API keys (Google Maps, Twilio)
+
+- `docker-compose.yml` - Database credentials in plain text:
+  ```yaml
+  POSTGRES_PASSWORD: shoppass
+  DB_PASSWORD: shoppass
+  ```
+
+- `database/init.sql` - Hardcoded passwords in seed data:
+  ```sql
+  INSERT INTO users (username, email, password, role) VALUES
+  ('admin', 'admin@shop.local', 'admin123', 'admin')
+  ```
+
+**Weak Credentials:**
+
+| Username | Password | Risk |
+|----------|----------|------|
+| admin | admin123 | Default admin with trivially guessable password |
+| john_doe | password123 | Common password pattern |
+| jane_smith | jane2024 | Predictable password with username + year |
+
+**Impact:**
+- Unauthorized access to production systems
+- Data breaches
+- Financial fraud via payment API compromise
+- AWS account takeover
+- Complete application compromise
+
+**How to Detect:**
+- Use tools like `git-secrets`, `trufflehog`, or `gitleaks` to scan repositories
+- Review `.gitignore` to ensure sensitive files are excluded
+- Audit committed history for accidentally pushed secrets
+
+**Remediation:**
+- Never commit secrets to version control
+- Use environment variables injected at runtime
+- Use secret management tools (AWS Secrets Manager, HashiCorp Vault, etc.)
+- Rotate all exposed credentials immediately
+- Add pre-commit hooks to prevent secret commits
+- Enforce strong password policies
+
+---
+
+### 2. [Placeholder for next security issue]
+
+*To be added...*
+
+---
+
+## Adding More Security Vulnerabilities
+
+Additional areas to explore for future training modules:
 
 - SQL Injection
 - XSS (Cross-Site Scripting)
